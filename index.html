@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"
+        integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+
+    <style>
+        text {
+            font: 1rem AvenirNext;
+        }
+
+        html,
+        body,
+        #imgContainer {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+            display: flow;
+            align-content: center;
+            text-align: center;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        img {
+            position: absolute;
+            margin: auto;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .media {
+            width: 100%;
+            height: 85%;
+            color: whitesmoke;
+            font: 3rem AvenirNext;
+        }
+
+        .msg {
+            color: lightgrey;
+            font-size: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="imgContainer">
+        <!-- Add the message here -->
+        <p class="msg">Please select an incident to view its preview.</p>
+    </div>
+
+    <script>
+        console.log("[ddc] loaded")
+
+        const imgContainer = document.querySelector("#imgContainer");
+
+        /**
+         * Executed when a message is received from SAS VA (e.g. by interaction or filter)
+         * @param evt {Event}
+        */
+        function onMessage(evt) {
+            console.log("[ddc1]", evt.data);
+            if (evt && evt.data && evt.data.data && evt.data.data.length > 0) {
+                const columnIndex = 0;
+                const columnValues = evt.data.data.map((values) => values[columnIndex]);
+
+                console.log("[ddc2]", columnValues);
+
+                $("#imgContainer").empty();
+
+                if (columnValues && columnValues.length === 1) {
+                    const firstValue = columnValues[0];
+                    outputMedia(firstValue);
+                } else {
+                    const div = $(`<p class="msg">Please select an incident to view its preview.</p>`);
+                    $("#imgContainer").append(div);
+                }
+            } else {
+                const div = $(`<p class="msg">Please assign data.</p>`);
+                $("#imgContainer").append(div);
+            }
+        }
+
+        const formats = {
+            "backentrance1": "mp4",
+            "frontentrance1": "mp4",
+            "sideentrance1": "mp4"
+        }
+
+        function outputMedia(location) {
+            console.log("[ddc2]" + location);
+
+            const name = location.toLowerCase();
+
+            if (formats[name]) {
+                // video
+                const videoSrc = "images/" + name + "." + formats[name];
+                const video = document.createElement("video");
+                video.setAttribute("muted", "");
+                video.setAttribute("disablePictureInPicture", "");
+                video.setAttribute("autoplay", "");
+
+                video.setAttribute("class", "media");
+                video.setAttribute("src", videoSrc);
+                imgContainer.appendChild(video);
+
+                video.muted = true;
+                // set timeout for 50 ms
+                setTimeout(() => {
+                    video.play();
+                }, 50);
+            } else {
+                const imageSrc = "images/" + name + ".jpg";
+                const img = document.createElement("img");
+                img.setAttribute("alt", name);
+
+                img.setAttribute("class", "media");
+                img.setAttribute("src", imageSrc);
+                imgContainer.appendChild(img);
+            }
+        }
+
+        if (window.addEventListener) {
+            window.addEventListener("message", onMessage, false);
+        } else {
+            window.attachEvent("onmessage", onMessage);
+        }
+    </script>
+
+</body>
+
+</html>
